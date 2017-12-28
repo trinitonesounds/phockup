@@ -192,6 +192,24 @@ def test_handle_move():
         assert os.path.isfile(os.path.join(dir_name, "unknown/in_move.txt.xmp"))
 
 
+def test_handle_move_removes_empty_dirs():
+    tempdir = tempfile.mkdtemp(suffix='first')
+    firstnesteddir = os.path.join(tempdir, 'one')
+    nesteddir = os.path.join(firstnesteddir, 'two', 'three')
+    os.makedirs(nesteddir, exist_ok=True)
+
+    open(os.path.join(nesteddir, "move.txt"), "w").close()
+
+    handle_file(os.path.join(nesteddir, "move.txt"), tempdir, "%Y/%m/%d", True)
+
+    assert not os.path.isfile(os.path.join(nesteddir, "move.txt"))
+
+    assert os.path.isfile(os.path.join(tempdir, "unknown/move.txt"))
+
+    # shutil.rmtree(tempdir)
+    assert not os.path.isdir(firstnesteddir)
+
+
 def test_handle_exists_same(capsys):
     with tempfile.TemporaryDirectory("phockup") as dir_name:
         output_dir = os.path.join(dir_name, "unknown")

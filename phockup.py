@@ -250,6 +250,7 @@ def handle_file(source_file, outputdir, dir_format, move_files, date_regex=None)
         else:
             if move_files:
                 shutil.move(source_file, target_file)
+                delete_empty_dir(os.path.dirname(source_file))
             else:
                 shutil.copy2(source_file, target_file)
 
@@ -284,8 +285,15 @@ def handle_file_xmp(source_file, photo_name, suffix, exif_output_dir, move_files
 
         if move_files:
             shutil.move(xmp_original, xmp_path)
+            delete_empty_dir(os.path.dirname(xmp_original))
         else:
             shutil.copy2(xmp_original, xmp_path)
+
+
+def delete_empty_dir(dir):
+    files = os.listdir(dir)
+    if len(files) == 0:
+        os.rmdir(dir)
 
 
 def sha256_checksum(filename, block_size=65536):
