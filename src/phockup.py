@@ -137,7 +137,7 @@ class Phockup():
         Process the file using the selected strategy
         If file is .xmp skip it so process_xmp method can handle it
         """
-        if str.endswith(file, '.xmp'):
+        if (str.endswith(file, '.xmp')) or (str.endswith(file, '.bib')):
             return None
 
         printer.line(file, True)
@@ -172,6 +172,7 @@ class Phockup():
 
                 printer.line(' => %s' % target_file)
                 self.process_xmp(file, target_file_name, suffix, output)
+                self.process_bib(file, target_file_name, suffix, output)
                 break
 
             suffix += 1
@@ -226,3 +227,33 @@ class Phockup():
                     os.link(original, xmp_path)
                 else:
                     shutil.copy2(original, xmp_path)
+
+    def process_bib(self, file, file_name, suffix, output):
+        """
+        Process bib files. These are meta data for RAW images
+        """
+        bib_original_with_ext = file + '.bib'
+        bib_original_without_ext = os.path.splitext(file)[0] + '.bib'
+
+        suffix = '-%s' % suffix if suffix > 1 else ''
+
+        bib_files = {}
+
+        if os.path.isfile(bib_original_with_ext):
+            bib_target = '%s%s.bib' % (file_name, suffix)
+            bib_files[bib_original_with_ext] = bib_target
+        if os.path.isfile(bib_original_without_ext):
+            bib_target = '%s%s.bib' % (os.path.splitext(file_name)[0], suffix)
+            bib_files[bib_original_without_ext] = bib_target
+
+        for original, target in bib_files.items():
+            bib_path = os.path.sep.join([output, target])
+            printer.line('%s => %s' % (original, bib_path))
+
+            if not self.dry_run:
+                if self.move:
+                    shutil.move(original, bib_path)
+                elif self.link:
+                    os.link(original, bib_path)
+                else:
+                    shutil.copy2(original, bib_path)
